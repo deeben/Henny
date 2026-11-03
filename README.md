@@ -1,15 +1,14 @@
 <div align="center">
 
-  # Whisky 🥃 
+  # Henny 🥃 
   *Wine but a bit stronger*
   
-  ![](https://img.shields.io/github/actions/workflow/status/IsaacMarovitz/Whisky/SwiftLint.yml?style=for-the-badge)
-  [![](https://img.shields.io/discord/1115955071549702235?style=for-the-badge)](https://discord.gg/CsqAfs9CnM)
+  ![](https://img.shields.io/github/actions/workflow/status/deeben/Henny/SwiftLint.yml?style=for-the-badge)
 </div>
 
-## Maintenance Notice
+## Modern Wine on macOS
 
-[Whisky is no longer actively maintained](https://docs.getwhisky.app/maintenance-notice). Apps and games may break at any time.
+Henny is an actively maintained fork of Whisky, updated for the latest Wine versions and macOS optimizations.
 
 <img width="650" alt="Config" src="https://github.com/Whisky-App/Whisky/assets/42140194/d0a405e8-76ee-48f0-92b5-165d184a576b">
 
@@ -27,9 +26,7 @@ Debug and profile with ease
 
 ---
 
-Whisky provides a clean and easy to use graphical wrapper for Wine built in native SwiftUI. You can make and manage bottles, install and run Windows apps and games, and unlock the full potential of your Mac with no technical knowledge required. Whisky is built on top of CrossOver 22.1.1, and Apple's own `Game Porting Toolkit`.
-
-Translated on [Crowdin](https://crowdin.com/project/whisky).
+Henny provides a clean and easy to use graphical wrapper for Wine built in native SwiftUI. You can make and manage bottles, install and run Windows apps and games, and unlock the full potential of your Mac with no technical knowledge required. Henny is updated for **Wine 11.7.0** and Apple's own [Game Porting Toolkit](https://github.com/apple/game-porting-toolkit).
 
 ---
 
@@ -37,45 +34,25 @@ Translated on [Crowdin](https://crowdin.com/project/whisky).
 - CPU: Apple Silicon (M-series chips)
 - OS: macOS Sonoma 14.0 or later
 
-## Homebrew
+## Installation
 
-Whisky is on homebrew! Install with 
-`brew install --cask whisky`.
-
-## My game isn't working!
-
-Some games need special steps to get working. Check out the [wiki](https://github.com/IsaacMarovitz/Whisky/wiki/Game-Support).
+Download the latest release from [GitHub Releases](https://github.com/deeben/Henny/releases).
 
 ---
 
 ## Credits & Acknowledgments
 
-Whisky is possible thanks to the magic of several projects:
+Henny is possible thanks to the magic of several projects:
 
+- [Whisky](https://github.com/Whisky-App/Whisky) - The original project by Isaac Marovitz
+- [Game Porting Toolkit](https://github.com/apple/game-porting-toolkit) by Apple
 - [msync](https://github.com/marzent/wine-msync) by marzent
 - [DXVK-macOS](https://github.com/Gcenx/DXVK-macOS) by Gcenx and doitsujin
 - [MoltenVK](https://github.com/KhronosGroup/MoltenVK) by KhronosGroup
 - [Sparkle](https://github.com/sparkle-project/Sparkle) by sparkle-project
 - [SemanticVersion](https://github.com/SwiftPackageIndex/SemanticVersion) by SwiftPackageIndex
-- [swift-argument-parser](https://github.com/apple/swift-argument-parser) by Apple
-- [SwiftTextTable](https://github.com/scottrhoyt/SwiftyTextTable) by scottrhoyt
-- [CrossOver 22.1.1](https://www.codeweavers.com/crossover) by CodeWeavers and WineHQ
-- D3DMetal by Apple
+- [Wine 11.7.0](https://www.winehq.org)
 
-Special thanks to Gcenx, ohaiibuzzle, and Nat Brown for their support and contributions!
+Special thanks to Isaac Marovitz for the incredible foundation of Whisky!
 
 ---
-
-<table>
-  <tr>
-    <td>
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="./images/cw-dark.png">
-          <img src="./images/cw-light.png" width="500">
-        </picture>
-    </td>
-    <td>
-        Whisky doesn't exist without CrossOver. Support the work of CodeWeavers using our <a href="https://www.codeweavers.com/store?ad=1010">affiliate link</a>.
-    </td>
-  </tr>
-</table>
