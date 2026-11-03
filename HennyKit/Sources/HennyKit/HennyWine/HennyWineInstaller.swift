@@ -23,7 +23,12 @@ public class HennyWineInstaller {
     /// Where the Wine runtime and its version plist are hosted.
     /// Change this one value when the runtime moves (e.g. to a Cloudflare R2 bucket).
     /// TEMPORARY: uses Whisky's last published runtime until Henny hosts its own build.
-    public static let runtimeBaseURL = URL(string: "https://data.getwhisky.app/Wine/")!
+    public static let runtimeBaseURL: URL = {
+        guard let url = URL(string: "https://data.getwhisky.app/Wine/") else {
+            preconditionFailure("runtimeBaseURL is not a valid URL")
+        }
+        return url
+    }()
 
     /// The runtime tarball that first-run setup downloads
     public static let runtimeTarballURL = runtimeBaseURL.appending(path: "Libraries.tar.gz")
