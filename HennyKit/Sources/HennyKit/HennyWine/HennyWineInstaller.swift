@@ -20,6 +20,14 @@ import Foundation
 import SemanticVersion
 
 public class HennyWineInstaller {
+    /// Where the Wine runtime and its version plist are hosted.
+    /// Change this one value when the runtime moves (e.g. to a Cloudflare R2 bucket).
+    /// TEMPORARY: uses Whisky's last published runtime until Henny hosts its own build.
+    public static let runtimeBaseURL = URL(string: "https://data.getwhisky.app/Wine/")!
+
+    /// The runtime tarball that first-run setup downloads
+    public static let runtimeTarballURL = runtimeBaseURL.appending(path: "Libraries.tar.gz")
+
     /// The Henny application folder
     public static let applicationFolder = FileManager.default.urls(
         for: .applicationSupportDirectory, in: .userDomainMask
@@ -47,6 +55,14 @@ public class HennyWineInstaller {
 
             try Tar.untar(tarBall: from, toURL: applicationFolder)
             try FileManager.default.removeItem(at: from)
+
+            // Whisky's runtime ships WhiskyWineVersion.plist; accept it under Henny's name.
+            let hennyPlist = libraryFolder.appending(path: "HennyWineVersion.plist")
+            let whiskyPlist = libraryFolder.appending(path: "WhiskyWineVersion.plist")
+            if !FileManager.default.fileExists(atPath: hennyPlist.path(percentEncoded: false)),
+               FileManager.default.fileExists(atPath: whiskyPlist.path(percentEncoded: false)) {
+                try FileManager.default.copyItem(at: whiskyPlist, to: hennyPlist)
+            }
         } catch {
             print("Failed to install HennyWine: \(error)")
         }
@@ -61,12 +77,12 @@ public class HennyWineInstaller {
     }
 
     public static func shouldUpdateHennyWine() async -> (Bool, SemanticVersion) {
-        let versionPlistURL = "https://raw.githubusercontent.com/deeben/Henny/main/Wine/HennyWineVersion.plist"
         let localVersion = hennyWineVersion()
 
         var remoteVersion: SemanticVersion?
 
-        if let remoteUrl = URL(string: versionPlistURL) {
+        do {
+            let remoteUrl = runtimeBaseURL.appending(path: "HennyWineVersion.plist")
             remoteVersion = await withCheckedContinuation { continuation in
                 URLSession(configuration: .ephemeral).dataTask(with: URLRequest(url: remoteUrl)) { data, _, error in
                     do {

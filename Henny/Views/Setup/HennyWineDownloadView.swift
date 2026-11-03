@@ -27,6 +27,7 @@ struct HennyWineDownloadView: View {
     @State private var downloadTask: URLSessionDownloadTask?
     @State private var observation: NSKeyValueObservation?
     @State private var startTime: Date?
+    @State private var errorMessage: String?
     @Binding var tarLocation: URL
     @Binding var path: [SetupStage]
     var body: some View {
@@ -40,7 +41,17 @@ struct HennyWineDownloadView: View {
                     .foregroundStyle(.secondary)
                 Spacer()
                 VStack {
-                    ProgressView(value: fractionProgress, total: 1)
+                    if let errorMessage {
+                        Text(verbatim: errorMessage)
+                            .font(.subheadline)
+                            .foregroundStyle(.red)
+                            .multilineTextAlignment(.center)
+                        Button("button.retry") {
+                            startDownload()
+                        }
+                    } else {
+                        ProgressView(value: fractionProgress, total: 1)
+                    }
                     HStack {
                         HStack {
                             Text(String(format: String(localized: "setup.hennywine.progress"),
@@ -64,37 +75,64 @@ struct HennyWineDownloadView: View {
         }
         .frame(width: 400, height: 200)
         .onAppear {
-            Task {
-                if let url: URL = URL(string: "https://data.gethenny.app/Wine/Libraries.tar.gz") {
-                    downloadTask = URLSession(configuration: .ephemeral).downloadTask(with: url) { url, _, _ in
-                        Task.detached {
-                            await MainActor.run {
-                                if let url = url {
-                                    tarLocation = url
-                                    proceed()
-                                }
-                            }
-                        }
-                    }
-                    observation = downloadTask?.observe(\.countOfBytesReceived) { task, _ in
-                        Task {
-                            await MainActor.run {
-                                let currentTime = Date()
-                                let elapsedTime = currentTime.timeIntervalSince(startTime ?? currentTime)
-                                if completedBytes > 0 {
-                                    downloadSpeed = Double(completedBytes) / elapsedTime
-                                }
-                                totalBytes = task.countOfBytesExpectedToReceive
-                                completedBytes = task.countOfBytesReceived
-                                fractionProgress = Double(completedBytes) / Double(totalBytes)
-                            }
-                        }
-                    }
-                    startTime = Date()
-                    downloadTask?.resume()
+            startDownload()
+        }
+    }
+
+    func startDownload() {
+        errorMessage = nil
+        fractionProgress = 0
+        completedBytes = 0
+        totalBytes = 0
+        let url = HennyWineInstaller.runtimeTarballURL
+        downloadTask = URLSession(configuration: .ephemeral).downloadTask(with: url) { fileURL, response, error in
+            // Anything other than a 200 with a file is a failure; without this check a
+            // 404 page would be "installed" as the runtime, and a DNS error would hang.
+            let status = (response as? HTTPURLResponse)?.statusCode
+            var failure: String?
+            var savedURL: URL?
+            if let error {
+                failure = error.localizedDescription
+            } else if status != 200 {
+                failure = "The server returned HTTP \(status.map(String.init) ?? "no response")."
+            } else if let fileURL {
+                // URLSession deletes its temp file when this handler returns, so move it now.
+                let destination = FileManager.default.temporaryDirectory
+                    .appending(path: "HennyWine-\(UUID().uuidString).tar.gz")
+                do {
+                    try FileManager.default.moveItem(at: fileURL, to: destination)
+                    savedURL = destination
+                } catch {
+                    failure = error.localizedDescription
+                }
+            } else {
+                failure = "The download finished without a file."
+            }
+            Task { @MainActor [failure, savedURL] in
+                if let failure {
+                    errorMessage = "Couldn't download HennyWine from \(url.host() ?? url.absoluteString). \(failure)"
+                } else if let savedURL {
+                    tarLocation = savedURL
+                    proceed()
                 }
             }
         }
+        observation = downloadTask?.observe(\.countOfBytesReceived) { task, _ in
+            Task { @MainActor in
+                let currentTime = Date()
+                let elapsedTime = currentTime.timeIntervalSince(startTime ?? currentTime)
+                if completedBytes > 0 {
+                    downloadSpeed = Double(completedBytes) / elapsedTime
+                }
+                totalBytes = task.countOfBytesExpectedToReceive
+                completedBytes = task.countOfBytesReceived
+                if totalBytes > 0 {
+                    fractionProgress = Double(completedBytes) / Double(totalBytes)
+                }
+            }
+        }
+        startTime = Date()
+        downloadTask?.resume()
     }
 
     func formatBytes(bytes: Int64) -> String {

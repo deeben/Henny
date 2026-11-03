@@ -1633,6 +1633,16 @@
         }
       }
     },
+    "button.retry" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retry"
+          }
+        }
+      }
+    },
     "button.removeAlert.checkbox" : {
       "localizations" : {
         "ar" : {
