@@ -31,7 +31,7 @@ public class HennyWineInstaller {
     }()
 
     /// The runtime tarball that first-run setup downloads
-    public static let runtimeTarballURL = runtimeBaseURL.appending(path: "Libraries.tar.gz")
+    public static let runtimeTarballURL = runtimeBaseURL.appending(path: "Libraries.tar.xz")
 
     /// The Henny application folder
     public static let applicationFolder = FileManager.default.urls(

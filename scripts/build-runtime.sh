@@ -4,7 +4,7 @@
 #  Henny
 #
 #  Packages a Wine build, Apple's D3DMetal (from the Game Porting Toolkit)
-#  and DXVK into the Libraries.tar.gz that Henny downloads on first launch,
+#  and DXVK into the Libraries.tar.xz that Henny downloads on first launch,
 #  writes HennyWineVersion.plist, and optionally uploads both to Cloudflare R2.
 #
 #  Run on a Mac. Nothing here is downloaded automatically from Apple: you
@@ -19,7 +19,7 @@
 #      --version 1.0.0                            runtime version, any x.y.z
 #      [--r2-bucket henny-runtime]                upload with wrangler if given
 #
-#  Output: build/runtime/Libraries.tar.gz and build/runtime/HennyWineVersion.plist
+#  Output: build/runtime/Libraries.tar.xz and build/runtime/HennyWineVersion.plist
 #
 
 set -euo pipefail
@@ -68,7 +68,7 @@ if [[ ! -e "$LIB/Wine/bin/wine64" && -e "$LIB/Wine/bin/wine" ]]; then
 fi
 
 echo "==> D3DMetal from the Game Porting Toolkit"
-hdiutil attach -quiet -nobrowse -readonly -mountpoint "$WORK/gptk" "$GPTK_DMG"
+yes | hdiutil attach -quiet -nobrowse -readonly -mountpoint "$WORK/gptk" "$GPTK_DMG"
 REDIST="$(find "$WORK/gptk" -type d -path '*/redist/lib' | head -1)"
 [[ -d "$REDIST" ]] || { echo "No redist/lib folder in the GPTK image" >&2; exit 1; }
 # redist/lib holds external/D3DMetal.framework, external/libd3dshared.dylib and
@@ -110,14 +110,22 @@ PLIST
 plutil -lint "$LIB/HennyWineVersion.plist" >/dev/null
 cp "$LIB/HennyWineVersion.plist" "$OUT/HennyWineVersion.plist"
 
-echo "==> Packing"
-tar -czf "$OUT/Libraries.tar.gz" -C "$WORK" Libraries
-shasum -a 256 "$OUT/Libraries.tar.gz" | tee "$OUT/Libraries.tar.gz.sha256"
-du -h "$OUT/Libraries.tar.gz"
+echo "==> Packing (xz, takes a few minutes)"
+# xz keeps the archive small enough for wrangler's 315 MB upload limit.
+# macOS tar auto-detects the compression when Henny extracts it.
+tar -cJf "$OUT/Libraries.tar.xz" -C "$WORK" Libraries
+shasum -a 256 "$OUT/Libraries.tar.xz" | tee "$OUT/Libraries.tar.xz.sha256"
+du -h "$OUT/Libraries.tar.xz"
+SIZE_MB=$(( $(stat -f%z "$OUT/Libraries.tar.xz") / 1048576 ))
 
 if [[ -n "$R2_BUCKET" ]]; then
+    if (( SIZE_MB > 310 )); then
+        echo "Archive is ${SIZE_MB} MB, over wrangler's 315 MB limit." >&2
+        echo "Upload build/runtime/* to $R2_BUCKET/Wine/ with rclone instead (see R2 docs)." >&2
+        exit 1
+    fi
     echo "==> Uploading to R2 bucket $R2_BUCKET"
-    for f in Libraries.tar.gz Libraries.tar.gz.sha256 HennyWineVersion.plist; do
+    for f in Libraries.tar.xz Libraries.tar.xz.sha256 HennyWineVersion.plist; do
         npx --yes wrangler r2 object put "$R2_BUCKET/Wine/$f" --file "$OUT/$f" --remote
     done
     echo "Set HennyWineInstaller.runtimeBaseURL to <your bucket's public URL>/Wine/"

@@ -98,7 +98,7 @@ struct HennyWineDownloadView: View {
             } else if let fileURL {
                 // URLSession deletes its temp file when this handler returns, so move it now.
                 let destination = FileManager.default.temporaryDirectory
-                    .appending(path: "HennyWine-\(UUID().uuidString).tar.gz")
+                    .appending(path: "HennyWine-\(UUID().uuidString).tar.xz")
                 do {
                     try FileManager.default.moveItem(at: fileURL, to: destination)
                     savedURL = destination
