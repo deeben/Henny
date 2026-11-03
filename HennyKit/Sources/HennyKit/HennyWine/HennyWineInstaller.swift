@@ -22,9 +22,9 @@ import SemanticVersion
 public class HennyWineInstaller {
     /// Where the Wine runtime and its version plist are hosted.
     /// Change this one value when the runtime moves (e.g. to a Cloudflare R2 bucket).
-    /// TEMPORARY: uses Whisky's last published runtime until Henny hosts its own build.
+    /// Served from the `henny` R2 bucket via its custom domain.
     public static let runtimeBaseURL: URL = {
-        guard let url = URL(string: "https://data.getwhisky.app/Wine/") else {
+        guard let url = URL(string: "https://hennyapp.deezlepower.com/Wine/") else {
             preconditionFailure("runtimeBaseURL is not a valid URL")
         }
         return url
