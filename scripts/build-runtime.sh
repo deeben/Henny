@@ -45,7 +45,7 @@ MAJOR=${BASH_REMATCH[1]} MINOR=${BASH_REMATCH[2]} PATCH=${BASH_REMATCH[3]}
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$ROOT/build/runtime"
 WORK="$(mktemp -d)"
-trap 'hdiutil detach -quiet "$WORK/gptk" 2>/dev/null || true; rm -rf "$WORK"' EXIT
+trap 'hdiutil detach -quiet "$WORK/gptk-eval" 2>/dev/null || true; hdiutil detach -quiet "$WORK/gptk" 2>/dev/null || true; rm -rf "$WORK"' EXIT
 LIB="$WORK/Libraries"
 mkdir -p "$LIB" "$OUT"
 
@@ -70,6 +70,14 @@ fi
 echo "==> D3DMetal from the Game Porting Toolkit"
 yes | hdiutil attach -quiet -nobrowse -readonly -mountpoint "$WORK/gptk" "$GPTK_DMG"
 REDIST="$(find "$WORK/gptk" -type d -path '*/redist/lib' | head -1)"
+# GPTK 4 nests redist/lib inside "Evaluation environment for Windows games *.dmg".
+if [[ -z "$REDIST" ]]; then
+    EVAL_DMG="$(find "$WORK/gptk" -maxdepth 1 -name 'Evaluation environment*.dmg' | head -1)"
+    if [[ -n "$EVAL_DMG" ]]; then
+        yes | hdiutil attach -quiet -nobrowse -readonly -mountpoint "$WORK/gptk-eval" "$EVAL_DMG"
+        REDIST="$(find "$WORK/gptk-eval" -type d -path '*/redist/lib' | head -1)"
+    fi
+fi
 [[ -d "$REDIST" ]] || { echo "No redist/lib folder in the GPTK image" >&2; exit 1; }
 # redist/lib holds external/D3DMetal.framework, external/libd3dshared.dylib and
 # wine/x86_64-windows/{d3d11,d3d12,dxgi,...}.dll; they overlay Wine's own lib folder.
@@ -111,16 +119,16 @@ plutil -lint "$LIB/HennyWineVersion.plist" >/dev/null
 cp "$LIB/HennyWineVersion.plist" "$OUT/HennyWineVersion.plist"
 
 echo "==> Packing (xz, takes a few minutes)"
-# xz keeps the archive small enough for wrangler's 315 MB upload limit.
+# xz keeps the archive small enough for wrangler's 300 MiB upload limit.
 # macOS tar auto-detects the compression when Henny extracts it.
 tar -cJf "$OUT/Libraries.tar.xz" -C "$WORK" Libraries
-shasum -a 256 "$OUT/Libraries.tar.xz" | tee "$OUT/Libraries.tar.xz.sha256"
+(cd "$OUT" && shasum -a 256 Libraries.tar.xz) | tee "$OUT/Libraries.tar.xz.sha256"
 du -h "$OUT/Libraries.tar.xz"
-SIZE_MB=$(( $(stat -f%z "$OUT/Libraries.tar.xz") / 1048576 ))
+SIZE_MB=$(( $(stat -f %z "$OUT/Libraries.tar.xz") / 1048576 ))
 
 if [[ -n "$R2_BUCKET" ]]; then
-    if (( SIZE_MB > 310 )); then
-        echo "Archive is ${SIZE_MB} MB, over wrangler's 315 MB limit." >&2
+    if (( SIZE_MB >= 300 )); then
+        echo "Archive is ${SIZE_MB} MiB, over wrangler's 300 MiB limit." >&2
         echo "Upload build/runtime/* to $R2_BUCKET/Wine/ with rclone instead (see R2 docs)." >&2
         exit 1
     fi
