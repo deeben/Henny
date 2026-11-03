@@ -121,7 +121,10 @@ cp "$LIB/HennyWineVersion.plist" "$OUT/HennyWineVersion.plist"
 echo "==> Packing (xz, takes a few minutes)"
 # xz keeps the archive small enough for wrangler's 300 MiB upload limit.
 # macOS tar auto-detects the compression when Henny extracts it.
-tar -cJf "$OUT/Libraries.tar.xz" -C "$WORK" Libraries
+# Files unpacked from a browser download carry com.apple.quarantine, and macOS tar
+# would store it in the archive, making Gatekeeper block every Wine binary for users.
+xattr -cr "$LIB"
+tar --no-xattrs --no-mac-metadata -cJf "$OUT/Libraries.tar.xz" -C "$WORK" Libraries
 (cd "$OUT" && shasum -a 256 Libraries.tar.xz) | tee "$OUT/Libraries.tar.xz.sha256"
 du -h "$OUT/Libraries.tar.xz"
 SIZE_MB=$(( $(stat -f %z "$OUT/Libraries.tar.xz") / 1048576 ))

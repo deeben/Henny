@@ -61,6 +61,8 @@ public class HennyWineInstaller {
             try Tar.untar(tarBall: from, toURL: applicationFolder)
             try FileManager.default.removeItem(at: from)
 
+            removeQuarantine(from: libraryFolder)
+
             // Whisky's runtime ships WhiskyWineVersion.plist; accept it under Henny's name.
             let hennyPlist = libraryFolder.appending(path: "HennyWineVersion.plist")
             let whiskyPlist = libraryFolder.appending(path: "WhiskyWineVersion.plist")
@@ -70,6 +72,20 @@ public class HennyWineInstaller {
             }
         } catch {
             print("Failed to install HennyWine: \(error)")
+        }
+    }
+
+    /// Gatekeeper blocks every quarantined binary and dylib Wine loads, one prompt at a time.
+    /// The runtime is ad-hoc signed, so clear the flag once after unpacking.
+    public static func removeQuarantine(from folder: URL) {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/xattr")
+        process.arguments = ["-dr", "com.apple.quarantine", folder.path(percentEncoded: false)]
+        do {
+            try process.run()
+            process.waitUntilExit()
+        } catch {
+            print("Failed to clear quarantine on \(folder.path): \(error)")
         }
     }
 
