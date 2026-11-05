@@ -68,14 +68,14 @@ if [[ ! -e "$LIB/Wine/bin/wine64" && -e "$LIB/Wine/bin/wine" ]]; then
 fi
 
 echo "==> D3DMetal from the Game Porting Toolkit"
-yes | hdiutil attach -quiet -nobrowse -readonly -mountpoint "$WORK/gptk" "$GPTK_DMG"
-REDIST="$(find "$WORK/gptk" -type d -path '*/redist/lib' | head -1)"
+{ yes || true; } | hdiutil attach -quiet -nobrowse -readonly -mountpoint "$WORK/gptk" "$GPTK_DMG"
+REDIST="$(find "$WORK/gptk" -type d -path '*/redist/lib' -print -quit)"
 # GPTK 4 nests redist/lib inside "Evaluation environment for Windows games *.dmg".
 if [[ -z "$REDIST" ]]; then
     EVAL_DMG="$(find "$WORK/gptk" -maxdepth 1 -name 'Evaluation environment*.dmg' | head -1)"
     if [[ -n "$EVAL_DMG" ]]; then
-        yes | hdiutil attach -quiet -nobrowse -readonly -mountpoint "$WORK/gptk-eval" "$EVAL_DMG"
-        REDIST="$(find "$WORK/gptk-eval" -type d -path '*/redist/lib' | head -1)"
+        { yes || true; } | hdiutil attach -quiet -nobrowse -readonly -mountpoint "$WORK/gptk-eval" "$EVAL_DMG"
+        REDIST="$(find "$WORK/gptk-eval" -type d -path '*/redist/lib' -print -quit)"
     fi
 fi
 [[ -d "$REDIST" ]] || { echo "No redist/lib folder in the GPTK image" >&2; exit 1; }
