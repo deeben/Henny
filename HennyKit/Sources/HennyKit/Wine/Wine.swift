@@ -232,8 +232,18 @@ public class Wine {
         var result: [String: String] = [
             "WINEPREFIX": bottle.url.path,
             "WINEDEBUG": "fixme-all",
-            "GST_DEBUG": "1"
+            "GST_DEBUG": "1",
+            // CrossOver-based Wine: emulate Windows write-copy mappings. Battle.net's
+            // installer and login screen crash or stay blank without it. Ignored by other Wine.
+            "WINE_SIMULATE_WRITECOPY": "1"
         ]
+        // CrossOver-based Wine preloads D3DMetal's shared library when told where it is,
+        // which D3DMetal needs under Rosetta. Without it that support is silently skipped.
+        let d3dShared = HennyWineInstaller.libraryFolder
+            .appending(path: "Wine/lib/external/libd3dshared.dylib")
+        if FileManager.default.fileExists(atPath: d3dShared.path) {
+            result["CX_APPLEGPTK_LIBD3DSHARED_PATH"] = d3dShared.path
+        }
         bottle.settings.environmentVariables(wineEnv: &result)
         guard !environment.isEmpty else { return result }
         result.merge(environment, uniquingKeysWith: { $1 })
