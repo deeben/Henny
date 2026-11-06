@@ -24,6 +24,8 @@ public class Wine {
     private static let dxvkFolder: URL = HennyWineInstaller.libraryFolder.appending(path: "DXVK")
     /// Path to the `wine64` binary
     public static let wineBinary: URL = HennyWineInstaller.binFolder.appending(path: "wine64")
+    private static let d3dSharedLibrary: URL = HennyWineInstaller.libraryFolder
+        .appending(path: "Wine/lib/external/libd3dshared.dylib")
     /// Parth to the `wineserver` binary
     private static let wineserverBinary: URL = HennyWineInstaller.binFolder.appending(path: "wineserver")
 
@@ -233,17 +235,10 @@ public class Wine {
             "WINEPREFIX": bottle.url.path,
             "WINEDEBUG": "fixme-all",
             "GST_DEBUG": "1",
-            // CrossOver-based Wine: emulate Windows write-copy mappings. Battle.net's
-            // installer and login screen crash or stay blank without it. Ignored by other Wine.
-            "WINE_SIMULATE_WRITECOPY": "1"
+            "WINE_SIMULATE_WRITECOPY": "1", // CrossOver Wine: Battle.net installer and login need it
+            // CrossOver Wine preloads D3DMetal's library from here (needed under Rosetta)
+            "CX_APPLEGPTK_LIBD3DSHARED_PATH": d3dSharedLibrary.path
         ]
-        // CrossOver-based Wine preloads D3DMetal's shared library when told where it is,
-        // which D3DMetal needs under Rosetta. Without it that support is silently skipped.
-        let d3dShared = HennyWineInstaller.libraryFolder
-            .appending(path: "Wine/lib/external/libd3dshared.dylib")
-        if FileManager.default.fileExists(atPath: d3dShared.path) {
-            result["CX_APPLEGPTK_LIBD3DSHARED_PATH"] = d3dShared.path
-        }
         bottle.settings.environmentVariables(wineEnv: &result)
         guard !environment.isEmpty else { return result }
         result.merge(environment, uniquingKeysWith: { $1 })
