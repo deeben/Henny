@@ -235,12 +235,10 @@ public class Wine {
             "WINEPREFIX": bottle.url.path,
             "WINEDEBUG": "fixme-all",
             "GST_DEBUG": "1",
-            "WINE_SIMULATE_WRITECOPY": "1", // CrossOver Wine: Battle.net installer and login need it
-            // CrossOver Wine preloads D3DMetal's library from here (needed under Rosetta)
+            "WINE_SIMULATE_WRITECOPY": "1", // CrossOver Wine: Battle.net login, D3DMetal preload
             "CX_APPLEGPTK_LIBD3DSHARED_PATH": d3dSharedLibrary.path
         ]
         bottle.settings.environmentVariables(wineEnv: &result)
-        guard !environment.isEmpty else { return result }
         result.merge(environment, uniquingKeysWith: { $1 })
         return result
     }
@@ -254,7 +252,6 @@ public class Wine {
             "WINEDEBUG": "fixme-all",
             "GST_DEBUG": "1"
         ]
-        guard !environment.isEmpty else { return result }
         result.merge(environment, uniquingKeysWith: { $1 })
         return result
     }
