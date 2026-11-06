@@ -30,7 +30,7 @@ extension Program {
     }
 
     func runInWine() {
-        let arguments = settings.arguments.split { $0.isWhitespace }.map(String.init)
+        let arguments = launchArguments.split { $0.isWhitespace }.map(String.init)
         let environment = generateEnvironment()
 
         Task.detached(priority: .userInitiated) {
@@ -46,9 +46,23 @@ extension Program {
         }
     }
 
+    /// Flags Battle.net's built-in Chromium needs under Wine: it is 32-bit, so its interface has
+    /// to render in software. Without them the login page draws badly or crashes.
+    private static let battleNetFlags = ["--in-process-gpu", "--use-gl=swiftshader"]
+
+    /// The user's arguments, plus any flags this program is known to need
+    var launchArguments: String {
+        guard url.lastPathComponent.caseInsensitiveCompare("Battle.net.exe") == .orderedSame else {
+            return settings.arguments
+        }
+        let existing = settings.arguments.split { $0.isWhitespace }.map(String.init)
+        let missing = Self.battleNetFlags.filter { !existing.contains($0) }
+        return (existing + missing).joined(separator: " ")
+    }
+
     public func generateTerminalCommand() -> String {
         return Wine.generateRunCommand(
-            at: self.url, bottle: bottle, args: settings.arguments, environment: generateEnvironment()
+            at: self.url, bottle: bottle, args: launchArguments, environment: generateEnvironment()
         )
     }
 
