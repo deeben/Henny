@@ -21,7 +21,7 @@ import os.log
 
 public class Wine {
     /// URL to the installed `DXVK` folder
-    private static let dxvkFolder: URL = HennyWineInstaller.libraryFolder.appending(path: "DXVK")
+    static let dxvkFolder: URL = HennyWineInstaller.libraryFolder.appending(path: "DXVK")
     /// Path to the `wine64` binary
     public static let wineBinary: URL = HennyWineInstaller.binFolder.appending(path: "wine64")
     private static let d3dSharedLibrary: URL = HennyWineInstaller.libraryFolder
@@ -102,9 +102,7 @@ public class Wine {
     public static func runProgram(
         at url: URL, args: [String] = [], bottle: Bottle, environment: [String: String] = [:]
     ) async throws {
-        if bottle.settings.dxvk {
-            try enableDXVK(bottle: bottle)
-        }
+        try syncDXVK(bottle: bottle)
 
         for await _ in try Self.runWineProcess(
             name: url.lastPathComponent,
@@ -214,17 +212,6 @@ public class Wine {
         Task.detached(priority: .userInitiated) {
             try await runWineserver(["-k"], bottle: bottle)
         }
-    }
-
-    public static func enableDXVK(bottle: Bottle) throws {
-        try FileManager.default.replaceDLLs(
-            in: bottle.url.appending(path: "drive_c").appending(path: "windows").appending(path: "system32"),
-            withContentsIn: Wine.dxvkFolder.appending(path: "x64")
-        )
-        try FileManager.default.replaceDLLs(
-            in: bottle.url.appending(path: "drive_c").appending(path: "windows").appending(path: "syswow64"),
-            withContentsIn: Wine.dxvkFolder.appending(path: "x32")
-        )
     }
 
     /// Construct an environment merging the bottle values with the given values
