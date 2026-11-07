@@ -1,0 +1,13 @@
+--- a/server/thread.c
++++ b/server/thread.c
+@@ -303,6 +303,10 @@
+     int effective_priority = get_effective_thread_priority( thread );
+ 
+     if (!process_port) return;
++    /* Henny: opt out of Mach scheduling policies. On macOS 27, threads Wine raises to
++     * fixed or realtime priority make cfprefsd crash repeatedly when they message it
++     * ("_pthread_set_properties_self failed"), which stalls every app on the Mac. */
++    if (getenv( "WINE_DISABLE_MACH_THREAD_PRIORITY" )) return;
+     kr = mach_port_extract_right( process_port, thread->unix_tid,
+                                   MACH_MSG_TYPE_COPY_SEND, &thread_port, &type );
+     if (kr != KERN_SUCCESS) return;
