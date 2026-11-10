@@ -67,7 +67,10 @@ extension Program {
     }
 
     public func runInTerminal() {
-        let wineCmd = generateTerminalCommand().replacingOccurrences(of: "\\", with: "\\\\")
+        // Escape for the AppleScript string literal below: backslashes first, then quotes
+        let wineCmd = generateTerminalCommand()
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
 
         let script = """
         tell application "Terminal"
