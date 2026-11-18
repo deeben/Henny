@@ -94,7 +94,7 @@ public struct BottleWineConfig: Codable, Equatable {
     var wineVersion: SemanticVersion = Self.defaultWineVersion
     var windowsVersion: WinVersion = .win10
     var enhancedSync: EnhancedSync = .msync
-    var avxEnabled: Bool = false
+    var avxEnabled: Bool = true
 
     public init() {}
 
@@ -104,7 +104,7 @@ public struct BottleWineConfig: Codable, Equatable {
         self.wineVersion = try container.decodeIfPresent(SemanticVersion.self, forKey: .wineVersion) ?? Self.defaultWineVersion
         self.windowsVersion = try container.decodeIfPresent(WinVersion.self, forKey: .windowsVersion) ?? .win10
         self.enhancedSync = try container.decodeIfPresent(EnhancedSync.self, forKey: .enhancedSync) ?? .msync
-        self.avxEnabled = try container.decodeIfPresent(Bool.self, forKey: .avxEnabled) ?? false
+        self.avxEnabled = try container.decodeIfPresent(Bool.self, forKey: .avxEnabled) ?? true
     }
     // swiftlint:enable line_length
 }
