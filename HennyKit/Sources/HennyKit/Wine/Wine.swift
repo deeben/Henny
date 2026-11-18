@@ -223,7 +223,10 @@ public class Wine {
             "WINEDEBUG": "fixme-all",
             "GST_DEBUG": "1",
             "WINE_SIMULATE_WRITECOPY": "1", // CrossOver Wine: Battle.net login, D3DMetal preload
-            "CX_APPLEGPTK_LIBD3DSHARED_PATH": d3dSharedLibrary.path
+            "CX_APPLEGPTK_LIBD3DSHARED_PATH": d3dSharedLibrary.path,
+            // The runtime's FiberData-in-%gs:0x20 patch overwrites macOS's per-thread QoS slot.
+            // Fiber-heavy games (Diablo IV) then crash cfprefsd and freeze the whole Mac.
+            "WINE_FIBER_GS_MIRROR": "0"
         ]
         bottle.settings.environmentVariables(wineEnv: &result)
         result.merge(environment, uniquingKeysWith: { $1 })
