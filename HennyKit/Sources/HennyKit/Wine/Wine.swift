@@ -233,7 +233,12 @@ public class Wine {
             "DOTNET_EnableWriteXorExecute": "0"
         ]
         bottle.settings.environmentVariables(wineEnv: &result)
+        let bottleOverrides = result["WINEDLLOVERRIDES"]
         result.merge(environment, uniquingKeysWith: { $1 })
+        // Keep the bottle's DLL overrides (e.g. DXVK's) when a program adds its own
+        if let bottleOverrides, let programOverrides = environment["WINEDLLOVERRIDES"] {
+            result["WINEDLLOVERRIDES"] = bottleOverrides + ";" + programOverrides
+        }
         return result
     }
 

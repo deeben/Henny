@@ -52,7 +52,8 @@ extension Program {
 
     /// The user's arguments, plus any flags this program is known to need
     var launchArguments: String {
-        guard url.lastPathComponent.caseInsensitiveCompare("Battle.net.exe") == .orderedSame else {
+        // The launcher passes them on to Battle.net.exe; the installer's own window doesn't need them
+        guard isBattleNet, url.lastPathComponent.lowercased() != "battle.net-setup.exe" else {
             return settings.arguments
         }
         let existing = settings.arguments.split { $0.isWhitespace }.map(String.init)

@@ -80,8 +80,23 @@ public final class Program: ObservableObject, Equatable, Hashable, Identifiable,
         }
     }
 
+    /// Blizzard's launcher, its bootstrapper and its installer. Games started from it
+    /// (e.g. Diablo IV) inherit its environment but not its arguments.
+    var isBattleNet: Bool {
+        ["battle.net.exe", "battle.net launcher.exe", "battle.net-setup.exe"]
+            .contains(url.lastPathComponent.lowercased())
+    }
+
+    /// CrossOver's per-app rule for Battle.net and Diablo IV: keep the in-game overlay out.
+    /// User-set values win.
+    private static let battleNetDllOverrides =
+        "battlenet.overlay.runtime.exe=d;battlenet.overlay.ui=d;battlenet.overlay.client.v1=d;systemsurvey.exe=d"
+
     public func generateEnvironment() -> [String: String] {
         var environment = settings.environment
+        if isBattleNet, environment["WINEDLLOVERRIDES"] == nil {
+            environment["WINEDLLOVERRIDES"] = Self.battleNetDllOverrides
+        }
         if settings.locale != .auto {
             environment["LC_ALL"] = settings.locale.rawValue
         }

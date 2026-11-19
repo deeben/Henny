@@ -310,11 +310,9 @@ public struct BottleSettings: Codable, Equatable {
         case .esync:
             wineEnv.updateValue("1", forKey: "WINEESYNC")
         case .msync:
+            // CrossOver never sets WINEESYNC alongside MSync (its bottle template removes it),
+            // and current D3DMetal no longer needs the old ESync lie.
             wineEnv.updateValue("1", forKey: "WINEMSYNC")
-            // D3DM detects ESYNC and changes behaviour accordingly
-            // so we have to lie to it so that it doesn't break
-            // under MSYNC. Values hardcoded in lid3dshared.dylib
-            wineEnv.updateValue("1", forKey: "WINEESYNC")
         }
 
         if metalHud {
