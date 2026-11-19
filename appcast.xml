@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>Henny</title>
+        <link>https://raw.githubusercontent.com/deeben/Henny/main/appcast.xml</link>
+        <description>Updates for Henny</description>
+        <language>en</language>
+        <item>
+            <title>Henny 2.4.1</title>
+            <link>https://github.com/deeben/Henny/releases/tag/v2.4.1</link>
+            <sparkle:releaseNotesLink>https://github.com/deeben/Henny/releases/tag/v2.4.1</sparkle:releaseNotesLink>
+            <pubDate>Thu, 19 Nov 2026 13:00:00 +0000</pubDate>
+            <sparkle:version>45</sparkle:version>
+            <sparkle:shortVersionString>2.4.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <enclosure
+                url="https://github.com/deeben/Henny/releases/download/v2.4.1/Henny-2.4.1.zip"
+                length="5016860"
+                type="application/octet-stream"
+                sparkle:edSignature="N5/1sxn8mHKSU/D4xeAaeMsfeCBc9UghAF/UfHWRoA968/DIjA14Ll+iU4D+HytH3bcCDpXej90Ugjqk8Kd/BA==" />
+        </item>
+    </channel>
+</rss>
