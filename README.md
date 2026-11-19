@@ -20,10 +20,6 @@ Familiar UI that integrates seamlessly with macOS
   One-click bottle creation and management
 </div>
 
-<img width="650" alt="debug" src="https://user-images.githubusercontent.com/42140194/229176642-57b80801-d29b-4123-b1c2-f3b31408ffc6.png">
-
-Debug and profile with ease
-
 ---
 
 Henny provides a clean and easy to use graphical wrapper for Wine built in native SwiftUI. You can make and manage bottles, install and run Windows apps and games, and unlock the full potential of your Mac with no technical knowledge required. Henny is updated for **Wine 11.7.0** and Apple's own [Game Porting Toolkit](https://github.com/apple/game-porting-toolkit).
