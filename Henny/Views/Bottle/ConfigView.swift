@@ -210,7 +210,18 @@ struct ConfigView: View {
             }
             Task(priority: .userInitiated) {
                 do {
-                    dpiConfig = try await Wine.dpiResolution(bottle: bottle) ?? 0
+                    // No LogPixels entry means Windows' default of 96. Falling back to 0 here used to
+                    // write LogPixels=0 into the bottle, which leaves Chromium (Steam) windows black.
+                    let storedDpi = try await Wine.dpiResolution(bottle: bottle)
+                    if let storedDpi, storedDpi > 0 {
+                        dpiConfig = storedDpi
+                    } else {
+                        dpiConfig = 96
+                        if storedDpi == 0 {
+                            // Repair bottles broken by the old fallback
+                            try await Wine.changeDpiResolution(bottle: bottle, dpi: 96)
+                        }
+                    }
                     dpiConfigLoadingState = .success
                 } catch {
                     print(error)
