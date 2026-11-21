@@ -23,3 +23,7 @@ Please provide a detailed description of your changes in your PR. If your commit
 # Review
 
 Once your pull request passes CI SwiftLint checks and builds, it will be ready for review. You may receive feedback on code that should changed. Once you have received an approval, your code will be merged!
+
+# Compatibility profiles
+
+Got a program working that needed special settings? Add it to the compatibility profiles so Henny applies them for everyone. See [Profiles.md](Profiles.md) for the format and how to test, and run `python3 scripts/check-profiles.py` before opening your pull request.

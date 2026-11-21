@@ -104,6 +104,10 @@ struct ContentView: View {
             if !HennyWineInstaller.isHennyWineInstalled() {
                 showSetup = true
             }
+            // Newer compatibility profiles, if any; the bundled copy works offline
+            Task.detached(priority: .utility) {
+                await AppProfiles.shared.refresh()
+            }
             let task = Task.detached {
                 return await HennyWineInstaller.shouldUpdateHennyWine()
             }

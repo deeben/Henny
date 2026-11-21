@@ -40,7 +40,9 @@ let package = Package(
     targets: [
         .target(
             name: "HennyKit",
-            dependencies: ["SemanticVersion"]
+            dependencies: ["SemanticVersion"],
+            // The compatibility profiles bundled for offline use. Also published to R2.
+            resources: [.copy("Resources/profiles.json")]
         )
     ],
     swiftLanguageVersions: [.version("6")]
