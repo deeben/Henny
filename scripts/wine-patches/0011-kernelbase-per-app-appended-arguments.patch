@@ -1,0 +1,181 @@
+Henny: per-application process settings in CreateProcessInternalW.
+
+Steam's Chromium UI (steamwebhelper.exe) only draws under winemac when its GPU
+code runs in-process; a separate GPU process drawing into another process's
+child window stays black. CrossOver injects --in-process-gpu through its closed
+compatibility database; this does the same, from a built-in table and from
+HKCU\Software\Wine\AppDefaults\<exe>\AppendCommandLine.
+
+DisableD3DMetal (default on for steamwebhelper.exe) drops WINEDLLPATH_D3DMETAL
+from the child's environment. Testing showed Steam also draws with D3DMetal
+loaded, so this is only a precaution. WINE_NO_DEFAULT_APP_ARGS turns the
+built-in defaults off.
+
+--- a/dlls/kernelbase/process.c
++++ b/dlls/kernelbase/process.c
+@@ -25,6 +25,7 @@
+ #define WIN32_NO_STATUS
+ #include "windef.h"
+ #include "winbase.h"
++#include "winreg.h"
+ #include "winnls.h"
+ #include "wincontypes.h"
+ #include "winternl.h"
+@@ -497,6 +498,119 @@
+     RtlFreeHeap( GetProcessHeap(), 0, cur_dirW );
+     RtlFreeUnicodeString( &desktopW );
+     RtlFreeUnicodeString( &titleW );
++    return ret;
++}
++
++/***********************************************************************
++ * Henny: per-application process settings, like CrossOver's compatibility rules.
++ *
++ * HKCU\Software\Wine\AppDefaults\<exe> can hold:
++ *   AppendCommandLine (REG_SZ)  arguments appended to the command line
++ *   DisableD3DMetal (REG_DWORD) non-zero: drop WINEDLLPATH_D3DMETAL from the environment
++ * Built-in defaults cover apps that need them; WINE_NO_DEFAULT_APP_ARGS turns those off.
++ */
++static const struct app_default
++{
++    const WCHAR *exe;
++    const WCHAR *args;
++    BOOL no_d3dmetal;
++} app_defaults[] =
++{
++    /* Steam's Chromium UI only draws under winemac with in-process GPU code on wined3d */
++    { L"steamwebhelper.exe", L"--in-process-gpu", TRUE },
++};
++
++static const WCHAR *exe_basename( const WCHAR *app_name )
++{
++    const WCHAR *exe = wcsrchr( app_name, '\\' );
++    return exe ? exe + 1 : app_name;
++}
++
++static HKEY open_app_defaults( const WCHAR *exe )
++{
++    WCHAR key_name[MAX_PATH + 32];
++    HKEY key;
++
++    if (lstrlenW( exe ) >= MAX_PATH) return 0;
++    swprintf( key_name, ARRAY_SIZE(key_name), L"Software\\Wine\\AppDefaults\\%s", exe );
++    if (RegOpenKeyExW( HKEY_CURRENT_USER, key_name, 0, KEY_QUERY_VALUE, &key )) return 0;
++    return key;
++}
++
++static const struct app_default *find_app_default( const WCHAR *exe )
++{
++    unsigned int i;
++
++    if (GetEnvironmentVariableW( L"WINE_NO_DEFAULT_APP_ARGS", NULL, 0 )) return NULL;
++    for (i = 0; i < ARRAY_SIZE(app_defaults); i++)
++        if (!wcsicmp( exe, app_defaults[i].exe )) return &app_defaults[i];
++    return NULL;
++}
++
++static WCHAR *append_app_args( const WCHAR *app_name, WCHAR *cmdline, const WCHAR *orig )
++{
++    const WCHAR *exe = exe_basename( app_name ), *args = NULL;
++    const struct app_default *def;
++    WCHAR value[512], *ret;
++    DWORD type, size = sizeof(value), len;
++    HKEY key;
++
++    if ((key = open_app_defaults( exe )))
++    {
++        if (!RegQueryValueExW( key, L"AppendCommandLine", NULL, &type, (BYTE *)value, &size ) &&
++            type == REG_SZ && size >= sizeof(WCHAR))
++        {
++            value[ARRAY_SIZE(value) - 1] = 0;
++            args = value;
++        }
++        RegCloseKey( key );
++    }
++    if (!args && (def = find_app_default( exe ))) args = def->args;
++    /* Chromium child processes (--type=renderer, gpu-process...) get their switches from the browser */
++    if (!args || !args[0] || wcsstr( cmdline, args ) || wcsstr( cmdline, L"--type=" )) return cmdline;
++
++    len = lstrlenW( cmdline ) + lstrlenW( args ) + 2;
++    if (!(ret = RtlAllocateHeap( GetProcessHeap(), 0, len * sizeof(WCHAR) ))) return cmdline;
++    swprintf( ret, len, L"%s %s", cmdline, args );
++    TRACE( "appending %s to %s\n", debugstr_w(args), debugstr_w(exe) );
++    if (cmdline != orig) RtlFreeHeap( GetProcessHeap(), 0, cmdline );
++    return ret;
++}
++
++static BOOL app_skips_d3dmetal( const WCHAR *app_name )
++{
++    const WCHAR *exe = exe_basename( app_name );
++    const struct app_default *def;
++    DWORD type, value, size = sizeof(value);
++    HKEY key;
++
++    if ((key = open_app_defaults( exe )))
++    {
++        LSTATUS ret = RegQueryValueExW( key, L"DisableD3DMetal", NULL, &type, (BYTE *)&value, &size );
++        RegCloseKey( key );
++        if (!ret && type == REG_DWORD) return value != 0;
++    }
++    return (def = find_app_default( exe )) && def->no_d3dmetal;
++}
++
++/* copy a unicode environment block without the WINEDLLPATH_D3DMETAL variable */
++static WCHAR *env_without_d3dmetal( const WCHAR *env )
++{
++    static const WCHAR var[] = L"WINEDLLPATH_D3DMETAL=";
++    const WCHAR *p;
++    WCHAR *ret, *dst;
++    SIZE_T len;
++
++    for (p = env; *p; p += lstrlenW( p ) + 1) ;
++    len = p - env + 1;
++    if (!(ret = RtlAllocateHeap( GetProcessHeap(), 0, len * sizeof(WCHAR) ))) return NULL;
++    for (p = env, dst = ret; *p; p += lstrlenW( p ) + 1)
++    {
++        if (!wcsnicmp( p, var, ARRAY_SIZE(var) - 1 )) continue;
++        lstrcpyW( dst, p );
++        dst += lstrlenW( p ) + 1;
++    }
++    *dst = 0;
+     return ret;
+ }
+ 
+@@ -512,7 +626,7 @@
+ {
+     const struct proc_thread_attr *handle_list = NULL, *job_list = NULL;
+     WCHAR name[MAX_PATH];
+-    WCHAR *p, *tidy_cmdline = cmd_line;
++    WCHAR *p, *tidy_cmdline = cmd_line, *app_env = NULL;
+     RTL_USER_PROCESS_PARAMETERS *params = NULL;
+     RTL_USER_PROCESS_INFORMATION rtl_info = { 0 };
+     HANDLE parent = 0, debug = 0;
+@@ -586,6 +700,20 @@
+     info->hThread = info->hProcess = 0;
+     info->dwProcessId = info->dwThreadId = 0;
+ 
++    tidy_cmdline = append_app_args( app_name, tidy_cmdline, cmd_line );
++    if ((!env || (flags & CREATE_UNICODE_ENVIRONMENT)) && app_skips_d3dmetal( app_name ))
++    {
++        WCHAR *cur_env = env ? NULL : GetEnvironmentStringsW();
++
++        if ((app_env = env_without_d3dmetal( env ? env : cur_env )))
++        {
++            TRACE( "not passing WINEDLLPATH_D3DMETAL to %s\n", debugstr_w(app_name) );
++            env = app_env;
++            flags |= CREATE_UNICODE_ENVIRONMENT;
++        }
++        if (cur_env) FreeEnvironmentStringsW( cur_env );
++    }
++
+     if (!(params = create_process_params( app_name, tidy_cmdline, cur_dir, env, flags, startup_info )))
+     {
+         status = STATUS_NO_MEMORY;
+@@ -714,6 +842,7 @@
+ 
+     RtlDestroyProcessParameters( params );
+     if (tidy_cmdline != cmd_line) HeapFree( GetProcessHeap(), 0, tidy_cmdline );
++    HeapFree( GetProcessHeap(), 0, app_env );
+     return set_ntstatus( status );
+ }
+ 
