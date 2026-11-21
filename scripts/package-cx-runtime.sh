@@ -20,13 +20,16 @@
 #      [--extras <folder with DXVK/, winetricks, verbs.txt>]
 #                                                 default: Whisky's Libraries folder
 #      [--r2-bucket henny]                        upload with wrangler if given
+#      [--separate-d3dmetal]                      keep Wine's own d3d11/dxgi; put D3DMetal in
+#                                                 lib/apple_gptk (needs WINEDLLPATH_D3DMETAL)
+#      [--out <folder>]                           default: build/runtime-cx
 #
-#  Output: build/runtime-cx/Libraries.tar.xz and build/runtime-cx/HennyWineVersion.plist
+#  Output: <out>/Libraries.tar.xz and <out>/HennyWineVersion.plist
 #
 
 set -euo pipefail
 
-ENGINE="" GPTK_DMG="" VERSION="" R2_BUCKET=""
+ENGINE="" GPTK_DMG="" VERSION="" R2_BUCKET="" SEPARATE="" OUT=""
 EXTRAS="$HOME/Library/Application Support/com.isaacmarovitz.Whisky/Libraries"
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -35,18 +38,20 @@ while [[ $# -gt 0 ]]; do
         --version) VERSION="$2"; shift 2 ;;
         --extras) EXTRAS="$2"; shift 2 ;;
         --r2-bucket) R2_BUCKET="$2"; shift 2 ;;
+        --separate-d3dmetal) SEPARATE=1; shift ;;
+        --out) OUT="$2"; shift 2 ;;
         *) echo "Unknown option: $1" >&2; exit 1 ;;
     esac
 done
 
 [[ -n "$ENGINE" && -n "$GPTK_DMG" && -n "$VERSION" ]] || {
-    sed -n '15,23p' "$0"; exit 1; }
+    sed -n '15,26p' "$0"; exit 1; }
 [[ "$VERSION" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]] || {
     echo "--version must look like 1.2.3" >&2; exit 1; }
 MAJOR=${BASH_REMATCH[1]} MINOR=${BASH_REMATCH[2]} PATCH=${BASH_REMATCH[3]}
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-OUT="$ROOT/build/runtime-cx"
+OUT="${OUT:-$ROOT/build/runtime-cx}"
 WORK="$(mktemp -d)"
 trap 'hdiutil detach -quiet "$WORK/gptk-eval" 2>/dev/null || true; hdiutil detach -quiet "$WORK/gptk" 2>/dev/null || true; chmod -R u+w "$WORK" 2>/dev/null; rm -rf "$WORK"' EXIT
 LIB="$WORK/Libraries"
@@ -84,8 +89,16 @@ if [[ -z "$REDIST" ]]; then
     REDIST="$(find "$WORK/gptk-eval" -type d -path '*/redist/lib' -print -quit)"
 fi
 [[ -d "$REDIST" ]] || { echo "No redist/lib folder in the GPTK image" >&2; exit 1; }
-ditto "$REDIST" "$LIB/Wine/lib"
-echo "    D3DMetal $(defaults read "$LIB/Wine/lib/external/D3DMetal.framework/Resources/Info" CFBundleShortVersionString)"
+if [[ -n "$SEPARATE" ]]; then
+    # CrossOver layout: Wine keeps its own d3d11/dxgi/d3d12; D3DMetal lives in lib/apple_gptk and is
+    # only used when WINEDLLPATH_D3DMETAL=<Libraries>/Wine/lib/apple_gptk/wine (patch 0001) is set.
+    ditto "$REDIST" "$LIB/Wine/lib/apple_gptk"
+    GPTK_INFO="$LIB/Wine/lib/apple_gptk/external/D3DMetal.framework/Resources/Info"
+else
+    ditto "$REDIST" "$LIB/Wine/lib"
+    GPTK_INFO="$LIB/Wine/lib/external/D3DMetal.framework/Resources/Info"
+fi
+echo "    D3DMetal $(defaults read "$GPTK_INFO" CFBundleShortVersionString)"
 
 echo "==> Signing the Wine loader"
 xattr -cr "$LIB"
