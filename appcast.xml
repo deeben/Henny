@@ -6,6 +6,20 @@
         <description>Updates for Henny</description>
         <language>en</language>
         <item>
+            <title>Henny 2.4.2</title>
+            <link>https://github.com/deeben/Henny/releases/tag/v2.4.2</link>
+            <sparkle:releaseNotesLink>https://github.com/deeben/Henny/releases/tag/v2.4.2</sparkle:releaseNotesLink>
+            <pubDate>Sat, 21 Nov 2026 10:45:00 +0000</pubDate>
+            <sparkle:version>46</sparkle:version>
+            <sparkle:shortVersionString>2.4.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <enclosure
+                url="https://github.com/deeben/Henny/releases/download/v2.4.2/Henny-2.4.2.zip"
+                length="5017176"
+                type="application/octet-stream"
+                sparkle:edSignature="t7ChPHhE0RQcCyEdFCnr2pdb6ko38PQJk8IgakaGPQpUQUkELQEUNn2Hz2JbRunCHdxw6WkhbvYSaB8GZ3msAQ==" />
+        </item>
+        <item>
             <title>Henny 2.4.1</title>
             <link>https://github.com/deeben/Henny/releases/tag/v2.4.1</link>
             <sparkle:releaseNotesLink>https://github.com/deeben/Henny/releases/tag/v2.4.1</sparkle:releaseNotesLink>
