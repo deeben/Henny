@@ -20714,6 +20714,193 @@
           }
         }
       }
+    },
+    "profile.setup.apply" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apply and Open"
+          }
+        }
+      }
+    },
+    "profile.setup.intro" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Henny knows settings that help %@ run. This changes the whole bottle:"
+          }
+        }
+      }
+    },
+    "profile.setup.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open"
+          }
+        }
+      }
+    },
+    "profile.setup.skip" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Without Changes"
+          }
+        }
+      }
+    },
+    "profile.setup.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set up %@?"
+          }
+        }
+      }
+    },
+    "profile.setup.winetricks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Winetricks opens in Terminal. Open %@ again when it has finished."
+          }
+        }
+      }
+    },
+    "profile.step.avxOff" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn AVX off"
+          }
+        }
+      }
+    },
+    "profile.step.avxOn" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn AVX on"
+          }
+        }
+      }
+    },
+    "profile.step.dpi" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set the bottle's DPI to %lld"
+          }
+        }
+      }
+    },
+    "profile.step.dxvkOff" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn DXVK off, so D3DMetal is used"
+          }
+        }
+      }
+    },
+    "profile.step.dxvkOn" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn DXVK on"
+          }
+        }
+      }
+    },
+    "profile.step.registry" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set %@\\%@ to \"%@\""
+          }
+        }
+      }
+    },
+    "profile.step.retinaOff" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn Retina mode off"
+          }
+        }
+      }
+    },
+    "profile.step.retinaOn" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn Retina mode on"
+          }
+        }
+      }
+    },
+    "profile.step.sync" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set enhanced sync to %@"
+          }
+        }
+      }
+    },
+    "profile.step.winVersion" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set the Windows version to %@"
+          }
+        }
+      }
+    },
+    "profile.step.winetricks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Install with Winetricks: %@"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

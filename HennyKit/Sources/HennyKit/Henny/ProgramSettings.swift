@@ -70,6 +70,8 @@ public struct ProgramSettings: Codable {
     public var locale: Locales = .auto
     public var environment: [String: String] = [:]
     public var arguments: String = ""
+    /// The compatibility profile setup the user was last asked about (`AppProfile.setupKey`)
+    public var profileSetup: String?
 
     static func decode(from settingsURL: URL) throws -> ProgramSettings {
         guard FileManager.default.fileExists(atPath: settingsURL.path(percentEncoded: false)) else {

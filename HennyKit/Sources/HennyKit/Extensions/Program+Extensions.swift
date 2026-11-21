@@ -30,10 +30,11 @@ extension Program {
     }
 
     func runInWine() {
-        let arguments = launchArguments.split { $0.isWhitespace }.map(String.init)
-        let environment = generateEnvironment()
-
         Task.detached(priority: .userInitiated) {
+            // The profile's one-time setup comes first; it may ask the user
+            guard await self.prepareProfileSetup() else { return }
+            let arguments = self.launchArguments.split { $0.isWhitespace }.map(String.init)
+            let environment = self.generateEnvironment()
             do {
                 try await Wine.runProgram(
                     at: self.url, args: arguments, bottle: self.bottle, environment: environment
@@ -46,19 +47,9 @@ extension Program {
         }
     }
 
-    /// Flags Battle.net's built-in Chromium needs under Wine: it is 32-bit, so its interface has
-    /// to render in software. Without them the login page draws badly or crashes.
-    private static let battleNetFlags = ["--in-process-gpu", "--use-gl=swiftshader"]
-
-    /// The user's arguments, plus any flags this program is known to need
+    /// The user's arguments, plus any the program's compatibility profile adds
     var launchArguments: String {
-        // The launcher passes them on to Battle.net.exe; the installer's own window doesn't need them
-        guard isBattleNet, url.lastPathComponent.lowercased() != "battle.net-setup.exe" else {
-            return settings.arguments
-        }
-        let existing = settings.arguments.split { $0.isWhitespace }.map(String.init)
-        let missing = Self.battleNetFlags.filter { !existing.contains($0) }
-        return (existing + missing).joined(separator: " ")
+        profile?.mergedArguments(with: settings.arguments) ?? settings.arguments
     }
 
     public func generateTerminalCommand() -> String {

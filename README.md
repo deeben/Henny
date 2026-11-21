@@ -34,6 +34,10 @@ Henny provides a clean and easy to use graphical wrapper for Wine built in nativ
 
 Download the latest release from [GitHub Releases](https://github.com/deeben/Henny/releases).
 
+## Known programs
+
+Henny sets up programs it knows, such as Battle.net and Steam, by itself: it adds the launch arguments they need, and the first time you open one it offers any bottle changes they need. The list lives in [compatibility profiles](Profiles.md), and anyone can add a program they got working.
+
 ---
 
 ## Credits & Acknowledgments
