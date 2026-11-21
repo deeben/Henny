@@ -1,0 +1,97 @@
+{
+  "format": 1,
+  "revision": 1,
+  "updated": "2026-11-21",
+  "profiles": [
+    {
+      "id": "battlenet",
+      "name": "Battle.net",
+      "programs": [
+        "Battle.net.exe",
+        "Battle.net Launcher.exe"
+      ],
+      "arguments": [
+        "--in-process-gpu",
+        "--use-gl=swiftshader"
+      ],
+      "dllOverrides": {
+        "battlenet.overlay.runtime.exe": "d",
+        "battlenet.overlay.ui": "d",
+        "battlenet.overlay.client.v1": "d",
+        "systemsurvey.exe": "d"
+      },
+      "bottle": {
+        "graphics": "d3dmetal",
+        "enhancedSync": "msync",
+        "avx": true,
+        "windowsVersion": "win10"
+      },
+      "notes": "Battle.net's Chromium window is 32-bit, so it has to draw in software (--in-process-gpu --use-gl=swiftshader), or the login page draws badly or crashes. The overlay DLLs are kept out, as CrossOver does. Games started from Battle.net, such as Diablo IV, inherit its environment and bottle settings but not its arguments. Henny sets WINE_SIMULATE_WRITECOPY=1 and CX_APPLEGPTK_LIBD3DSHARED_PATH for every program, so they are not repeated here. Windows 10 is the version that was tested, not a proven requirement.",
+      "tested": {
+        "runtime": "11.33.0",
+        "date": "2026-11-21",
+        "result": "works",
+        "with": "Battle.net login and updates, Diablo IV on M1"
+      }
+    },
+    {
+      "id": "battlenet-setup",
+      "name": "Battle.net installer",
+      "programs": [
+        "Battle.net-Setup.exe"
+      ],
+      "dllOverrides": {
+        "battlenet.overlay.runtime.exe": "d",
+        "battlenet.overlay.ui": "d",
+        "battlenet.overlay.client.v1": "d",
+        "systemsurvey.exe": "d"
+      },
+      "bottle": {
+        "graphics": "d3dmetal",
+        "enhancedSync": "msync",
+        "avx": true,
+        "windowsVersion": "win10"
+      },
+      "notes": "The installer's own window does not need Battle.net's Chromium flags. When it finishes it starts Battle.net by itself, without them; quit that copy and open Battle.net.exe from Henny.",
+      "tested": {
+        "runtime": "11.33.0",
+        "date": "2026-11-21",
+        "result": "works"
+      }
+    },
+    {
+      "id": "steam",
+      "name": "Steam",
+      "programs": [
+        "steam.exe"
+      ],
+      "minRuntime": "11.33.0",
+      "bottle": {
+        "graphics": "d3dmetal",
+        "dpi": 96
+      },
+      "notes": "From runtime 11.33.0, Henny's Wine adds --in-process-gpu to Steam's browser (steamwebhelper.exe) and keeps D3DMetal off it, so Steam needs no arguments. DXVK stays off. The bottle's DPI must be a real value such as 96: a DPI of 0 leaves Chromium windows blank. PR #5 stops new bottles getting DPI 0; this check fixes bottles made before it.",
+      "tested": {
+        "runtime": "11.33.0",
+        "date": "2026-11-21",
+        "result": "works",
+        "with": "Store, library and login draw with no arguments"
+      }
+    },
+    {
+      "id": "steam-old-runtime",
+      "name": "Steam (runtime too old)",
+      "programs": [
+        "steam.exe"
+      ],
+      "runtimeBelow": "11.33.0",
+      "notice": "Steam's store and login pages need Henny's Wine runtime 11.33.0 or later. Reopen Henny to get the runtime update it offers, then open Steam again.",
+      "notes": "Before 11.33.0 the Wine runtime has no fix for Steam's browser (steamwebhelper.exe) and no setting can stand in for it, so Henny only warns.",
+      "tested": {
+        "runtime": "11.31.0",
+        "date": "2026-11-21",
+        "result": "broken"
+      }
+    }
+  ]
+}

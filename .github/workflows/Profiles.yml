@@ -1,0 +1,20 @@
+name: Profiles
+
+on:
+  pull_request:
+    paths:
+      - "HennyKit/Sources/HennyKit/Resources/profiles.json"
+      - "scripts/check-profiles.py"
+  push:
+    paths:
+      - "HennyKit/Sources/HennyKit/Resources/profiles.json"
+      - "scripts/check-profiles.py"
+  workflow_dispatch:
+
+jobs:
+  Check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check compatibility profiles
+        run: python3 scripts/check-profiles.py
